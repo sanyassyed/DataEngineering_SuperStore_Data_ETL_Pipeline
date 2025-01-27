@@ -81,3 +81,22 @@ git add .
 git commit -m "ADD:Initial commit"
 git push -u origin main
 ```
+
+## Installing apps required
+* NOTE: EC2 instance comes with python 3.10 installed but we wont be using it
+```bash 
+which python3
+python3 --version
+```
+* python 3.12 and pip3 
+```bash
+sudo apt update
+sudo apt install -y software-properties-common build-essential
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+sudo apt install -y python3.12 python3.12-venv python3.12-dev
+python3.12 -m ensurepip --upgrade
+python3.12 -m pip install --upgrade pip setuptools
+
+```
+* virtual env with python 3.12

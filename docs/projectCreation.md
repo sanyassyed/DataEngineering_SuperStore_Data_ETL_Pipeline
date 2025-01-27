@@ -17,4 +17,4 @@ PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-poli
 VERSION_CODENAME=focal
 UBUNTU_CODENAME=focal
 ```
-* Memory info: 
+* Memory info: 2 cores, 8GB RAM, 32GB storage 

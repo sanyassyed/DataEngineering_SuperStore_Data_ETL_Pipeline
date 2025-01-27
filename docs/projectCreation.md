@@ -88,15 +88,24 @@ git push -u origin main
 which python3
 python3 --version
 ```
-* python 3.12 and pip3 
+* installing miniconda followed by python 3.12 and pip
 ```bash
-sudo apt update
-sudo apt install -y software-properties-common build-essential
-sudo add-apt-repository ppa:deadsnakes/ppa -y
-sudo apt update
-sudo apt install -y python3.12 python3.12-venv python3.12-dev
-python3.12 -m ensurepip --upgrade
-python3.12 -m pip install --upgrade pip setuptools
+cd "${HOME}"
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
+# -b (Batch mode):This option tells the installer to run in batch mode. In batch mode, the installer does not prompt for user input and will automatically proceed with the default installation settings.
+# -p ${HOME}/miniconda:-p: This option specifies the installation path for Miniconda, i.e it will be installed in the folder miniconda.
+bash ~/miniconda.sh -b -p ${HOME}/miniconda
+rm ~/miniconda.sh
+eval "$(~/miniconda/bin/conda shell.bash hook)" && conda init
+source ~/.bashrc
+# now you should see (base) appear
 
+# Create virtual env in the project folder
+cd DataEngineering_SuperStore_Data_ETL_Pipeline 
+conda create --prefix ./.venv python=3.12 pip -y
+# activate the virtual env
+conda activate ./venv
+# check python version
+which python
+python --version
 ```
-* virtual env with python 3.12

@@ -66,7 +66,17 @@ git clone git@github.com:sanyassyed/DataEngineering_SuperStore_Data_ETL_Pipeline
 
 # check the remote origin setting
 git remote -v
+# check git config
+git config -l
+git config --list --global
+git config --global user.name
+git config --global user.email
 
+# set global username and email
+git config --global user.name "ubuntu"
+git config --global user.email "ubuntu@superstore.com"
+
+# commit changes
 git add .
 git commit -m "ADD:Initial commit"
 git push -u origin main

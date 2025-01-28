@@ -128,12 +128,11 @@ python --version
 	* Edition: MySql Community
 	* Engine Version: MySWL 8.0.40
 	* Templates: Free tier
-	* Availability: Not available for free tier
-	* Settings: `superstore-database` any custom name you like
+	* Settings: superstore-databasea
 	* Credentails settings: 
 		* Master username: admin 
 		* Credentials Management: Self managed
-		* Master Password: p******** 
+		* Master Password: 
 	* Instance Configuration: 
 		* Burstable classes
 		* db.t3.micro
@@ -141,23 +140,18 @@ python --version
 		* Storage Type: General Purpose SSD
 		* Allocated Storage: 20
 		* Additional storage configuration: Enable storage autoscaling
-		* Maximum storage threshold: 1000
-	* Connectivity: 
+	* Connectivity:
 		* Compute Reaource - Don't connect
-                * VPC: Create new VPC
-                * DB subnet group: Create new DB Subnet Group
-                * Public Access: Yes
-                * VPC security group: Choose existing
-                * Existing VPC security groups: default
-                * Availability Zone: No preference
-		* Additional configuration: Database port- 3306
-	* Database authentication - password authentication
-	* Additional configuration: leave default settings
-	* Everything else leave as default
-	* Select `Create Database` button
-
----
+		* VPC: Create new VPC
+		* DB subnet group: Create new DB Subnet Group
+		* Public Access: Yes
+		* VPC security group: Choose existing,
+		* Existing VPC security groups
+		* Availability Zone: No preference
+		
+		
 	
+
 ## Useful Links
 * Connect to EC2 Instance via `EC2 Instance Connect` 
 	* [Tutorial](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-tutorial.html#eic-tut1-task2)

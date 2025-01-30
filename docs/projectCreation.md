@@ -122,41 +122,57 @@ python --version
 
 ## RDS
 * Goto RDS on AWS
-* Create Database:
-	* Standard Create
-	* Engine Options: MySql
-	* Edition: MySql Community
-	* Engine Version: MySWL 8.0.40
-	* Templates: Free tier
-	* Availability: Not available for free tier
-	* Settings: `superstore-database` any custom name you like
-	* Credentails settings: 
-		* Master username: admin 
-		* Credentials Management: Self managed
-		* Master Password: p******** 
-	* Instance Configuration: 
-		* Burstable classes
-		* db.t3.micro
-	* Storage:
-		* Storage Type: General Purpose SSD
-		* Allocated Storage: 20
-		* Additional storage configuration: Enable storage autoscaling
-		* Maximum storage threshold: 1000
-	* Connectivity: 
-		* Compute Reaource - Don't connect
-                * VPC: Create new VPC
-                * DB subnet group: Create new DB Subnet Group
-                * Public Access: Yes
-                * VPC security group: Choose existing
-                * Existing VPC security groups: default
-                * Availability Zone: No preference
-		* Additional configuration: Database port- 3306
-	* Database authentication - password authentication
-	* Additional configuration: leave default settings
-	* Everything else leave as default
-	* Select `Create Database` button
-
+### Create Database:
+* Select the options mentioned below [Source](https://www.youtube.com/watch?v=Ng_zi11N4_c)
+* Standard Create
+* Engine Options: MySql
+* Edition: MySql Community
+* Engine Version: MySWL 8.0.40
+* Templates: Free tier
+* Availability: Not available for free tier
+* Settings: `superstore-database` any custom name you like
+* Credentails settings: 
+	* Master username: admin 
+	* Credentials Management: Self managed
+	* Master Password: p******** 
+* Instance Configuration: 
+	* Burstable classes
+	* db.t3.micro
+* Storage:
+	* Storage Type: General Purpose SSD
+	* Allocated Storage: 20
+	* Additional storage configuration: Enable storage autoscaling
+	* Maximum storage threshold: 1000
+* Connectivity: 
+	* Compute Reaource - Don't connect
+		* VPC: default
+		* DB subnet group: default
+		* Public Access: Yes
+		* VPC security group: Choose existing
+		* Existing VPC security groups: default
+		* Availability Zone: No preference
+	* Additional configuration: Database port- 3306
+* Database authentication - password authentication
+* Additional configuration: leave default settings
+* Everything else leave as default
+* Select `Create Database` button
+* Goto the security group of the database
+* In the inbound rules add 2 more rules `All Traffic` for
+	* Ipv4
+	* Ipv6
 ---
+### MySql Workbench
+* Click in the + symbol
+* Connection Name: `superstore` (or any name you like)
+* Connection Method: TCP/IP
+* Hostname: Paste the Enpoint copied from AWS RDS console here
+* Username: admin (same as above)
+* Test Connection
+* OK
+* The connection will then appear in the home page
+* Click on the connection
+* Add the password when prompted
+* Run the [sql script]() to load the dataset
 	
 ## Useful Links
 * Connect to EC2 Instance via `EC2 Instance Connect` 

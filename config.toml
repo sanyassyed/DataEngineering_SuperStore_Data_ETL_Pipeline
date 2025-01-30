@@ -18,6 +18,6 @@ page_number=50
 url="https://www.themuse.com/api/public/jobs"
 
 [aws]
-bucket_name='wcd-projects-jobs-data-2024'
+bucket_name='wcd-week3-lambda-miniproject'
 region='us-east-2'
-file_name='jobs_20241126-173725.parquet'
+file_name='top_10_customers_20250130-203311.json'

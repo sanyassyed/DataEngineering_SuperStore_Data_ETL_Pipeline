@@ -1,4 +1,4 @@
-import mysql.connector
+from sqlalchemy import create_engine
 import logging
 import os
 import toml
@@ -26,27 +26,23 @@ logging.basicConfig(
 logging.info(f"LOG FILE FOR THIS PYTHON SCRIPT IS AT: {LOG_FILE}")
 
 
-def connect_db(mysql_db):
+def connect_db(db_name):
+    connection_string = f"mysql+mysqlconnector://{USER}:{PASSWORD}@{HOST_MYSQL}:3306/{db_name}"
     try:
-        conn = mysql.connector.connect(host=HOST_MYSQL, 
-                                    user=USER, 
-                                    password=PASSWORD, 
-                                    database=mysql_db, 
-                                    auth_plugin='mysql_native_password')
+        engine = create_engine(connection_string, echo=True)
         logging.info(f"Connected to the Database")
-    except mysql.connector.Error as e:
+    except Exception as e:
         logging.error(f"Something went wrong: {e}")
         logging.error("Could not connect to the database")
         return None
-    return conn
+    return engine
 
-def disconnect_db(conn):
-    conn.commit()
-    conn.close()
+def disconnect_db(engine):
+    engine.dispose()
     logging.info("Database connection closed")
     return None
 
-def extract(conn):
+def extract(engine):
     logging.info("Querying the orders table")
     output_file_name = f"top_10_customers_{time.strftime('%Y%m%d-%H%M%S')}.csv"
     output_file = os.path.join(OUTPUT_FOLDER, output_file_name)
@@ -57,25 +53,25 @@ def extract(conn):
     query = f"SELECT CustomerID, SUM(OrderQuantity * ((UnitPrice * (1- Discount)) + ShippingCost)) order_total  FROM orders GROUP BY CustomerID ORDER BY 2 DESC LIMIT 10"
     
     try:
-        df = pd.read_sql(query, conn)
+        df = pd.read_sql(query, con=engine)
         df.to_csv(output_file, encoding='utf-8-sig', index=False)
         logging.info(f"Data extracted from db & written to the file {output_file}")
     except pd.errors.DatabaseError as e:
         logging.error(f"Following error when running query on the database: {e}")
-    except Error as e:
+    except Exception as e:
         logging.error(f"Following error when running query on the database: {e}")
     return
 
 def main():
     app_config = toml.load('config.toml')
-    mysql_db = app_config['mysql']['database']
+    db_name = app_config['mysql']['database']
 
 
-    connection = connect_db(mysql_db)
+    engine = connect_db(db_name)
     
-    if connection is not None:
-        extract(connection)
-        disconnect_db(connection)
+    if engine is not None:
+        extract(engine)
+        disconnect_db(engine)
     
     else:
         logging.error("Could not connect to the Database, aborting !!")

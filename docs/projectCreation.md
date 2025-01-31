@@ -88,7 +88,9 @@ git push -u origin main
 
 ---
 
-## Installing Apps
+## Development Environment Setup 
+
+### EC2 Instance 
 * NOTE: EC2 instance comes with python 3.10 installed but we wont be using it
 ```bash 
 which python3
@@ -120,9 +122,9 @@ python --version
 ```
 ---
 
-## RDS
+### DATABASE
 * Goto RDS on AWS
-### Create Database:
+#### RDS
 * Select the options mentioned below [Source](https://www.youtube.com/watch?v=Ng_zi11N4_c)
 * Standard Create
 * Engine Options: MySql
@@ -173,7 +175,39 @@ python --version
 * Click on the connection
 * Add the password when prompted
 * Run the [sql script]() to load the dataset
-	
+* Write the query to extract top 10 customers with maximum sales
+
+## Data Extraction
+* Steps to perform via the EC2 instance
+	* Query the `superstore` DB on RDS
+	* Extract the top 10 customers by Sales
+	* Save the results as Json on EC2 instance
+	* Upload the json file to S3 bucket
+
+## Lambda
+### Creating & Testing Function Locally
+* Create another virtual env for the lambda function `.lambda_env`
+* Write & Test the function locally - `local_lambda_function.py`
+* Configure the function to include event_handler() - `lambda_function.py`
+* Package the function and the dependencies `superstore_project.zip`
+* Add the lambda_function.py to the .zip folder
+
+### Creating function via AWS CLI
+* Create a role for the lambda function: `superstore_role`
+* Attach policies to the role	
+	* LambdaBasicExecutionRole
+	* S3FullAccess
+* Create the lambda function on AWS
+* Set permissions on Lambda to allow s3 to access it
+
+### Create `Event Notification` on the s3 bucket 
+* Write the notification configuration in the file `notification.json`
+* Add the notification to the bucket which should trigger the lambda function 
+
+### Setting 
+
+
+
 ## Useful Links
 * Connect to EC2 Instance via `EC2 Instance Connect` 
 	* [Tutorial](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-tutorial.html#eic-tut1-task2)

@@ -51,7 +51,7 @@ def extract(engine, output_file_name):
             logging.info(f"Creating output folder at: {OUTPUT_FOLDER}")
             os.mkdir(OUTPUT_FOLDER)
 
-    query = f"SELECT CustomerID, SUM(OrderQuantity * ((UnitPrice * (1- Discount)) + ShippingCost)) order_total  FROM orders GROUP BY CustomerID ORDER BY 2 DESC LIMIT 10"
+    query = f"SELECT CustomerID, SUM(Sales) TotalCustomerSales  FROM orders GROUP BY CustomerID ORDER BY 2 DESC LIMIT 10"
     
     try:
         df = pd.read_sql(query, con=engine)

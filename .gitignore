@@ -3,7 +3,7 @@
 
 
 # virtual environment files
-.venv/*
+**/.venv/*
 
 # log files
 *.log

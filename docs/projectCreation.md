@@ -186,12 +186,24 @@ python --version
 
 ## Lambda
 ### Creating & Testing Function Locally
-* Create another virtual env for the lambda function `.lambda_env`
+* Create a folder `lambda` to store all lambda related files
+* Create another virtual env for the lambda function `.venv`
 * Write & Test the function locally - `local_lambda_function.py`
 * Configure the function to include event_handler() - `lambda_function.py`
-* Package the function and the dependencies `superstore_project.zip`
+* Package the function and the dependencies `superstore_lambda.zip`
 * Add the lambda_function.py to the .zip folder
+```bash
+# Create virtual env .venv for lambda function
+cd lambda 
+conda create --prefix ./.venv python=3.12 pip -y
+# activate the virtual env
+conda activate ./venv
+# check python version
+which python
+python --version
 
+
+```
 ### Creating function via AWS CLI
 * Create a role for the lambda function: `superstore_role`
 * Attach policies to the role	
@@ -203,9 +215,6 @@ python --version
 ### Create `Event Notification` on the s3 bucket 
 * Write the notification configuration in the file `notification.json`
 * Add the notification to the bucket which should trigger the lambda function 
-
-### Setting 
-
 
 
 ## Useful Links

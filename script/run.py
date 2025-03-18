@@ -10,11 +10,13 @@ from aws_utils.aws_utils import connect_to_s3
 
 load_dotenv()
 
-# loading env variables
+# Loading env variables
+# Database secrets
 HOST_MYSQL = os.getenv('HOST_MYSQL')
 USER = os.getenv('USER_MYSQL')
 PASSWORD = os.getenv('PASSWORD')
 
+# Project directories
 LOG_FILE = os.getenv('LOG_FILE_PYTHON')
 OUTPUT_FOLDER = os.getenv('OUTPUT_FOLDER')
 
@@ -105,6 +107,15 @@ def save_to_s3(output_file_name : str, output_file_path: str, bucket_name : str,
 
 
 def main():
+    """
+    Connects to superstore db on AWS RDS
+    Pulls Top 10 customer data via query
+    Store the results as json file locally in the output folder
+    Uploads the json file to s3 bucket
+
+    """
+    # Extracting credentials from the config file
+    # Database name
     app_config = toml.load('config.toml')
     db_name = app_config['mysql']['database']
 
@@ -112,16 +123,19 @@ def main():
     aws_bucket_name = app_config['aws']['bucket_name']
     aws_region = app_config['aws']['region']
 
-    
+    # Setting json file name
     output_file_name = f"top_10_customers_{time.strftime('%Y%m%d-%H%M%S')}.json"
 
+    # Connecting to DB
     engine = connect_db(db_name)
     
     if engine is not None:
+        # Extracting data from DB and saving locally as a json file
         output_file_path = extract(engine, output_file_name)
         disconnect_db(engine)
 
         # Upload to S3
+        # Uploading the json file to s3
         save_to_s3(output_file_name, output_file_path, aws_bucket_name, aws_region)
         logging.info(f"ETL Complete!")
     else:

@@ -183,7 +183,17 @@ python --version
 	* Extract the top 10 customers by Sales
 	* Save the results as Json on EC2 instance
 	* Upload the json file to S3 bucket
-
+* The scipt to perform this task is in the folder [script](../script/)
+* To run the code to extract the top10 cutomers and store the result as a json file in the [output folder](../output/) run the following code from the project folder:
+```bash
+cd /home/ubuntu/DataEngineering_SuperStore_Data_ETL_Pipeline
+bash script/run.sh
+```
+* Once you run the script the top 10 customer data should be available in two locations- 
+	1. Output folder contains the data in a .json file 
+	2. S3 bucket `wcd-week3-lambda-miniproject`'s `/input` folder contains the same .json file
+* This is the file which when uploaded to S3 should trigger the Lambda function
+ 
 ## Lambda
 ### Creating & Testing Function Locally
 * Create a folder `lambda` to store all lambda related files

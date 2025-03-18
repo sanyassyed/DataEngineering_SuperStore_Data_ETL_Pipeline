@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 ##############################################################
 # Project Path
 script_path="$(cd "$(dirname "$(dirname "${BASH_SOURCE:-$0}")")" && pwd)"
@@ -12,12 +13,12 @@ log_date=$(date +"%d-%m-%Y-%H-%M-%S")
 ##############################################################
 # Load environment variables from config.toml
 
-SCRIPT_FOLDER_NAME=$(grep 'script_folder' config.toml | sed 's/.*=//' | tr -d '"')
-OUTPUT_FOLDER_NAME=$(grep 'output_folder' config.toml | sed 's/.*=//' | tr -d '"')
-LOG_FOLDER_NAME=$(grep 'log_folder' config.toml | sed 's/.*=//' | tr -d '"')
-PYTHON_FILE_NAME=$(grep 'py_script' config.toml | sed 's/.*=//' | tr -d '"')
-SCRIPT_FILE_NAME=$(grep 'sh_script' config.toml | sed 's/.*=//' | tr -d '"')
-VIRTUAL_ENV_PATH=$(grep 'virtual_env_path' config.toml | sed 's/.*=//' | tr -d '"')
+SCRIPT_FOLDER_NAME=$(grep '^script_folder' config.toml | sed 's/.*=//' | tr -d '"')
+OUTPUT_FOLDER_NAME=$(grep '^output_folder' config.toml | sed 's/.*=//' | tr -d '"')
+LOG_FOLDER_NAME=$(grep '^log_folder' config.toml | sed 's/.*=//' | tr -d '"')
+PYTHON_FILE_NAME=$(grep '^py_script' config.toml | sed 's/.*=//' | tr -d '"')
+SCRIPT_FILE_NAME=$(grep '^sh_script' config.toml | sed 's/.*=//' | tr -d '"')
+VIRTUAL_ENV_PATH=$(grep '^virtual_env_path' config.toml | sed 's/.*=//' | tr -d '"')
 
 # Derived paths
 PROJECT_FOLDER="${script_path}"
@@ -76,3 +77,8 @@ echo "PYTHON PROGRAM RUN SUCCEEDED"
 conda activate
 
 exit 0
+
+# Run this file as follows
+# cd /home/ubuntu/DataEngineering_SuperStore_Data_ETL_Pipeline
+# bash script/run.sh
+

@@ -20,6 +20,7 @@ PASSWORD = os.getenv('PASSWORD')
 LOG_FILE = os.getenv('LOG_FILE_PYTHON')
 OUTPUT_FOLDER = os.getenv('OUTPUT_FOLDER')
 
+# Setting up logging
 logging.basicConfig(
                     level=logging.DEBUG,
                     format="%(asctime)s %(levelname)s : %(message)s",
@@ -31,6 +32,16 @@ logging.info(f"LOG FILE FOR THIS PYTHON SCRIPT IS AT: {LOG_FILE}")
 
 
 def connect_db(db_name):
+    """
+    Connects to the DB db_name and returns the connection engine
+    
+    Args:
+    db_name (str): The name of the database to connect to on AWS RDS
+
+    Returns:
+    sqlalchemy.engine.base.Engine: Connects to the db and returns the connection engine
+
+    """
     connection_string = f"mysql+mysqlconnector://{USER}:{PASSWORD}@{HOST_MYSQL}:3306/{db_name}"
     try:
         engine = create_engine(connection_string, echo=True)
@@ -39,14 +50,33 @@ def connect_db(db_name):
         logging.error(f"Something went wrong: {e}")
         logging.error("Could not connect to the database")
         return None
+    # print(f"This is what is returned: {type(engine)}")
     return engine
 
 def disconnect_db(engine):
+    """
+    Disconnects from the db using the connection engine
+
+    Args:
+    engine (sqlalchemy.engine.base.Engine): The connection engine connected to the db
+
+    """
     engine.dispose()
     logging.info("Database connection closed")
     return None
 
 def extract(engine, output_file_name):
+    """
+    Uses the connection engine and extracts query result from the database using pandas 
+    And stores the df as json data with output_file_name in the output folder
+
+    Args:
+    engine (sqlalchemy.engine.base.Engine): the connection engine with the db connection
+    output_file_name (str): The name for the .json data file
+
+    Returns:
+    str: The path along with the name of the .json file where the output data is stored
+    """
     logging.info("Querying the orders table")
     output_file = os.path.join(OUTPUT_FOLDER, output_file_name)
     if not os.path.exists(OUTPUT_FOLDER):
@@ -78,6 +108,7 @@ def save_to_s3(output_file_name : str, output_file_path: str, bucket_name : str,
         bucket_name (str): The name of the S3 bucket.
         region (str): The AWS region where the bucket is located (default: 'us-east-2').
     """
+    # Establish a connection to AWS S3 
     s3, s3_client = connect_to_s3()
     output_file_name_s3 = f'input/{output_file_name}'
 

@@ -76,3 +76,7 @@ echo "PYTHON PROGRAM RUN SUCCEEDED"
 conda activate
 
 exit 0
+
+# Run this file as follows
+# cd /home/ubuntu/DataEngineering_SuperStore_Data_ETL_Pipeline
+# bash lambda/lambda_creation.sh

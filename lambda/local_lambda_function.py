@@ -93,6 +93,7 @@ def main():
         if result is not None:
             response = post_api(result, url)
             if response.status_code == 201:
+                logging.info(f"Data posted to the API: {result}")
                 logging.info("Request successful: data posted!")
                 logging.info("SUCCESS: Code executed successfully to post data to API; TERMINATING code")
             else:

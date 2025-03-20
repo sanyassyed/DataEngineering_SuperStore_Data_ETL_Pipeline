@@ -189,6 +189,10 @@ python --version
 cd /home/ubuntu/DataEngineering_SuperStore_Data_ETL_Pipeline
 bash script/run.sh
 ```
+* The above code does the following
+	1. Queries the `orders` table from AWS RDS and gets the customer id and sales of the top 10 customers
+	1. Writes this data in the json format to the local system in the output folder
+	1. Uploads this file from the output folder to the S3 bucket on AWS
 * Once you run the script the top 10 customer data should be available in two locations- 
 	1. Output folder contains the data in a .json file 
 	2. S3 bucket `wcd-week3-lambda-miniproject`'s `/input` folder contains the same .json file
@@ -197,8 +201,17 @@ bash script/run.sh
 ## Lambda
 ### Creating & Testing Function Locally
 * Create a folder `lambda` to store all lambda related files
-* Create another virtual env for the lambda function `.venv`
-* Write & Test the function locally - `local_lambda_function.py`
+* Create another virtual env for the lambda function `.venv`. You will use this folder to package the Lambda dependencies from
+* Write & Test the function locally - `local_lambda_function.py` as follows
+```bash
+cd /home/ubuntu/DataEngineering_SuperStore_Data_ETL_Pipeline
+bash lambda/lambda_creation.sh
+```
+* The above will test the lambda locally by doing the following:
+	1. Pull the customer Id's from the local json file in the output folder (In AWS Lambda will pull the same file from the the S3 bucket)
+	1. Optionally you can do the same by pulling the data directly from S3 rather than the opuput folder (V2)
+	1. Use the ID's and query `customer` table from AWS RDS and pull the customer names 
+	1. Then PSOT this data in the json format to the API end point 
 * Configure the function to include event_handler() - `lambda_function.py`
 * Package the function and the dependencies `superstore_lambda.zip`
 * Add the lambda_function.py to the .zip folder

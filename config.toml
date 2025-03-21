@@ -8,10 +8,10 @@ log_folder="logs"
 virtual_env_path="./.venv"
 
 [lambda]
-lambda_script_folder="lambda"
+lambda_script_folder="script"
 lambda_sh_script="lambda_creation.sh"
 lambda_py_script="local_lambda_function.py"
-lambda_virtual_env_path="./lambda/.venv"
+lambda_virtual_env_path="./script/.venv"
 
 [mysql]
 port=3306
@@ -24,3 +24,4 @@ url="https://virtserver.swaggerhub.com/wcd_de_lab/top10/1.0.0/add"
 bucket_name='wcd-week3-lambda-miniproject'
 region='us-east-2'
 file_name='top_10_customers_20250130-203311.json'
+file_path_s3='input/top_10_customers_20250321-165747.json'

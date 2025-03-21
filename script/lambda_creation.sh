@@ -57,7 +57,7 @@ echo "[INFO:] Running Python script at: ${PYTHON_FILE}"
 
 # PRODUCTION MODE
 echo "[INFO:] Running in Production Mode:"
-python3 "${PYTHON_FILE}" --input_data "top_10_customers_20250130-203311.json"
+python3 "${PYTHON_FILE}"
 
 # TESTING MODE (uncomment if needed):
 #echo "[INFO:] Running in Test Mode:"
@@ -79,4 +79,5 @@ exit 0
 
 # Run this file as follows
 # cd /home/ubuntu/DataEngineering_SuperStore_Data_ETL_Pipeline
-# bash lambda/lambda_creation.sh
+# bash script/lambda_creation.sh
+# NOTE: To change the file name/path to be downloaded from s3 do it in config.toml 

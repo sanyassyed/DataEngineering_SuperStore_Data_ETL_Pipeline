@@ -4,19 +4,24 @@ import logging
 import argparse
 import toml
 import json
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 import requests
 from dotenv import load_dotenv
+from aws_utils.aws_utils import connect_to_s3, connect_db, disconnect_db
 
 load_dotenv()
-# loading env variables
+# Load environment variables
+
+# Database credentials
 HOST_MYSQL = os.getenv('HOST_MYSQL')
 USER = os.getenv('USER_MYSQL')
 PASSWORD = os.getenv('PASSWORD')
 
+# Project Directories
 OUTPUT_FOLDER = os.getenv('OUTPUT_FOLDER')
 LOG_FILE = os.getenv('LOG_FILE_PYTHON')
 
+# Configure Logging
 logging.basicConfig(
                     level=logging.DEBUG,
                     format="%(asctime)s %(levelname)s : %(message)s",
@@ -24,29 +29,37 @@ logging.basicConfig(
                     filename=LOG_FILE,
                    )
 
-def connect_db(db_name):
-    connection_string = f"mysql+mysqlconnector://{USER}:{PASSWORD}@{HOST_MYSQL}:3306/{db_name}"
-    try:
-        engine = create_engine(connection_string, echo=True)
-        logging.info(f"Connected to the Database")
-    except Exception as e:
-        print(f"Something went wrong: {e}")
-        print("Could not connect to the database")
-        return None
-    return engine
 
-def disconnect_db(engine):
-    engine.dispose()
-    logging.info("Database connection closed")
-    return None
+def extract_ids(bucket_name, file_path_s3):
+    """
+    Extract the customer ids by:
+    1. Connecting to S3
+    2. Pulling the json file from the s3 bucket as a python dictionary using json
+    3. Reading the ids from the dictionary as strings
 
+    Args:
+    bucket_name (str): Name of the s3 bucket
+    file_path_s3 (str): The json file name along with the entire path to the file on s3
 
-def extract_ids_json(input_data_path):
-    # extract customer_id from the json file
-    with open(os.path.join(OUTPUT_FOLDER, input_data_path), 'r') as f:
-        data_json = json.load(f)
+    Returns:
+    str: A string of customer ids
+
+    """
+    s3, s3_client = connect_to_s3()
+    # Get the file inside the S3 Bucket
+    s3_response = s3_client.get_object(Bucket=bucket_name, Key=file_path_s3)
+
+    # Get the Body object in the S3 get_object() response
+    s3_object_body = s3_response.get('Body')
+
+    # Read the data in bytes format
+    content = s3_object_body.read()
+
+    # extract customer_id from the json file as dict
+    json_dict = json.loads(content)
+    
     # extract the customer ids as a list
-    ids_str = "(" + ", ".join([str(x) for x in data_json['CustomerID'].values()]) + ")"
+    ids_str = "(" + ", ".join([str(x) for x in json_dict['CustomerID'].values()]) + ")"
     logging.info(f"Extracted customer ids from json file as {ids_str}")
     return ids_str
 
@@ -74,19 +87,20 @@ def post_api(result, url):
     return response
 
 def main():
-    parser = argparse.ArgumentParser()
-    # Set the default for the dataset argument
-    parser.add_argument("--input_data")
-    args = parser.parse_args()
-
+    # Getting Config
+    # DB
     app_config = toml.load('config.toml')
     db_name = app_config['mysql']['database']
     url = app_config['api']['url']
 
-    # Create a dictionary of the shell arguments
-    ids_str = extract_ids_json(args.input_data)
+    # AWS
+    bucket_name = app_config['aws']['bucket_name']
+    file_path_s3 = app_config['aws']['file_path_s3']
+
+    # Download json from s3 & extract the customer ids from the file
+    ids_str = extract_ids(bucket_name, file_path_s3)
     
-    engine = connect_db(db_name)
+    engine = connect_db(db_name, USER, PASSWORD, HOST_MYSQL)
     if engine is not None:
         result = extract_names_db(engine, ids_str)
         disconnect_db(engine)

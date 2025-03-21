@@ -1,11 +1,10 @@
-from sqlalchemy import create_engine
 import logging
 import os
 import toml
 from dotenv import load_dotenv
 import time
 import pandas as pd
-from aws_utils.aws_utils import connect_to_s3
+from aws_utils.aws_utils import connect_to_s3, connect_db, disconnect_db
 
 
 load_dotenv()
@@ -30,36 +29,6 @@ logging.basicConfig(
 
 logging.info(f"Log file for this script: {LOG_FILE}")
 
-
-def connect_db(db_name):
-    """
-    Establishes a connection to the specified database and returns the connection engine.
-    
-    Args:
-    db_name (str): Name of the database hosted on AWS RDS.
-
-    Returns:
-    sqlalchemy.engine.base.Engine: Database connection engine.
-    """
-    connection_string = f"mysql+mysqlconnector://{USER}:{PASSWORD}@{HOST_MYSQL}:3306/{db_name}"
-    try:
-        engine = create_engine(connection_string, echo=True)
-        logging.info("Successfully connected to the database.")
-    except Exception as e:
-        logging.error(f"Database connection failed: {e}")
-        return None
-    return engine
-
-def disconnect_db(engine):
-    """
-    Closes the database connection.
-
-    Args:
-    engine (sqlalchemy.engine.base.Engine): Active database connection engine.
-    """
-    engine.dispose()
-    logging.info("Database connection closed.")
-    return None
 
 def extract(engine, output_file_name):
     """
@@ -155,7 +124,7 @@ def main():
     output_file_name = f"top_10_customers_{time.strftime('%Y%m%d-%H%M%S')}.json"
 
     # Establish database connection
-    engine = connect_db(db_name)
+    engine = connect_db(db_name, USER, PASSWORD, HOST_MYSQL)
     
     if engine is not None:
         # Extract data from the database and save locally

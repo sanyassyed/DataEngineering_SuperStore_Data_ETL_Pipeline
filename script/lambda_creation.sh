@@ -1,83 +1,33 @@
-#!/bin/bash
+# Install zip
+sudo apt install zip -y
+# Goto the folder with the python virtual env for the lambda function
+cd /home/ubuntu/DataEngineering_SuperStore_Data_ETL_Pipeline/script
+thisfolder=$(pwd)
+# Goto the path with the dependencies
+cd $thisfolder/.venv/lib/python3.12/site-packages
+# Zip the dependencies into a zip file called superstore.zip and save in the script folder
+zip -r9 ${thisfolder}/superstore.zip .
+# Goto the script folder
+cd ${thisfolder}
+# Add the custom function in the folder aws_utils to the .zip folder
+zip -r9 superstore.zip aws_utils
+# Add the lambda_function to the .zip file
+zip -g superstore.zip lambda_function.py
+# Add the script/.env file with environment variables to the .zip file
+zip -g superstore.zip .env
+# check the contents of the zip file as follows
+unzip -l superstore.zip
 
-##############################################################
-# Project Path
-script_path="$(cd "$(dirname "$(dirname "${BASH_SOURCE:-$0}")")" && pwd)"
-echo "[INFO:] PROJECT DIRECTORY: ${script_path}"
+# goto the folder with the package
+cd ${thisfolder}
 
-##############################################################
-# Setting local date variable
-log_date=$(date +"%d-%m-%Y-%H-%M-%S")
+# Create the Lambda Role and attach policy
+aws iam create-role --role-name superstore_lambda_role --assume-role-policy-document '{"Version": "2012-10-17","Statement": [{ "Effect": "Allow", "Principal": {"Service": "lambda.amazonaws.com"}, "Action": "sts:AssumeRole"}]}'
 
-##############################################################
-# Load environment variables from config.toml
+# Policy 1
+aws iam attach-role-policy --role-name superstore_lambda_role --policy-arn arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+# Policy 2
+aws iam attach-role-policy --role-name superstore_lambda_role --policy-arn arn:aws:iam::aws:policy/AmazonS3FullAccess
 
-SCRIPT_FOLDER_NAME=$(grep 'lambda_script_folder' config.toml | sed 's/.*=//' | tr -d '"')
-OUTPUT_FOLDER_NAME=$(grep 'output_folder' config.toml | sed 's/.*=//' | tr -d '"')
-LOG_FOLDER_NAME=$(grep 'log_folder' config.toml | sed 's/.*=//' | tr -d '"')
-PYTHON_FILE_NAME=$(grep 'lambda_py_script' config.toml | sed 's/.*=//' | tr -d '"')
-SCRIPT_FILE_NAME=$(grep 'lambda_sh_script' config.toml | sed 's/.*=//' | tr -d '"')
-VIRTUAL_ENV_PATH=$(grep 'lambda_virtual_env_path' config.toml | sed 's/.*=//' | tr -d '"')
-
-# Derived paths
-PROJECT_FOLDER="${script_path}"
-export OUTPUT_FOLDER="${PROJECT_FOLDER}/${OUTPUT_FOLDER_NAME}"
-SCRIPT_FOLDER="${PROJECT_FOLDER}/${SCRIPT_FOLDER_NAME}"
-PYTHON_FILE="${SCRIPT_FOLDER}/${PYTHON_FILE_NAME}"
-SCRIPT_FILE="${SCRIPT_FOLDER}/${SCRIPT_FILE_NAME}"
-LOG_FOLDER="${PROJECT_FOLDER}/${LOG_FOLDER_NAME}"
-LOG_FILE_NAME="${SCRIPT_FILE_NAME}_${log_date}.log"
-LOG_FILE_NAME_PYTHON="${PYTHON_FILE_NAME}_${log_date}.log"
-LOG_FILE="${LOG_FOLDER}/${LOG_FILE_NAME}"
-export LOG_FILE_PYTHON="${LOG_FOLDER}/${LOG_FILE_NAME_PYTHON}"
-
-##############################################################
-# Setting log rules
-exec > >(tee ${LOG_FILE}) 2>&1
-
-##############################################################
-# Activating virtual environment
-echo "[INFO:] Activating virtual env"
-# Initialize Conda for the script
-eval "$(conda shell.bash hook)"
-conda activate ${VIRTUAL_ENV_PATH}
-
-##############################################################
-# Metadata
-echo "[INFO:] Metadata:"
-echo "[INFO:] Output data folder: ${OUTPUT_FOLDER}"
-echo "[INFO:] Script file: ${SCRIPT_FILE}"
-echo "[INFO:] Python file: ${PYTHON_FILE}"
-echo "[INFO:] Log file for ${SCRIPT_FILE_NAME} at: ${LOG_FILE}"
-echo "[INFO:] Log file for ${PYTHON_FILE_NAME} at: ${LOG_FILE_PYTHON}"
-
-##############################################################
-# Step 2: Running Python Script
-echo "[INFO:] Running Python script at: ${PYTHON_FILE}"
-
-# PRODUCTION MODE
-echo "[INFO:] Running in Production Mode:"
-python3 "${PYTHON_FILE}"
-
-# TESTING MODE (uncomment if needed):
-#echo "[INFO:] Running in Test Mode:"
-#python3 "${PYTHON_FILE}" --test_run
-
-RC1=$?
-if [ ${RC1} != 0 ]; then
-    echo "[DEBUG:] PYTHON RUNNING FAILED"
-    echo "[ERROR:] RETURN CODE: ${RC1}"
-    echo "[ERROR:] REFER TO THE LOG FOR THE REASON FOR THE FAILURE."
-    exit 1
-fi
-
-echo "PYTHON PROGRAM RUN SUCCEEDED"
-
-conda activate
-
-exit 0
-
-# Run this file as follows
-# cd /home/ubuntu/DataEngineering_SuperStore_Data_ETL_Pipeline
-# bash script/lambda_creation.sh
-# NOTE: To change the file name/path to be downloaded from s3 do it in config.toml 
+# Create the lambda function
+aws lambda create-function --function-name superstore --zip-file fileb://superstore.zip --handler lambda_function.lambda_handler --runtime python3.12 --role arn:aws:iam::209479284263:role/superstore_lambda_role

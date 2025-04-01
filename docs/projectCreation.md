@@ -200,18 +200,18 @@ bash script/run.sh
  
 ## Lambda
 ### Creating & Testing Function Locally
-* Create a folder `lambda` to store all lambda related files
-* Create another virtual env for the lambda function `.venv`. You will use this folder to package the Lambda dependencies from
+* ~~Create a folder `lambda` to store all lambda related files~~ This is not done as we are unable to use the aws_utils user defined functions
+* Create another virtual env for the lambda function `.venv` in the script folder. You will use this folder to package the Lambda dependencies
 * Write & Test the function locally - `local_lambda_function.py` as follows
 ```bash
 cd /home/ubuntu/DataEngineering_SuperStore_Data_ETL_Pipeline
 bash lambda/lambda_creation.sh
 ```
 * The above will test the lambda locally by doing the following:
-	1. Pull the customer Id's from the local json file in the output folder (In AWS Lambda will pull the same file from the the S3 bucket)
+	1. Pull the customer Id's from the local json file in the output folder (In AWS Lambda; it will pull the same file from the the S3 bucket)
 	1. Optionally you can do the same by pulling the data directly from S3 rather than the opuput folder (V2)
 	1. Use the ID's and query `customer` table from AWS RDS and pull the customer names 
-	1. Then PSOT this data in the json format to the API end point 
+	1. Then POST this data in the json format to the API end point 
 * Configure the function to include event_handler() - `lambda_function.py`
 * Package the function and the dependencies `superstore_lambda.zip`
 * Add the lambda_function.py to the .zip folder
@@ -245,5 +245,7 @@ python --version
 	* [Tutorial](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-connect-tutorial.html#eic-tut1-task2)
 	* First add the prefix list for EC2 instance connect to the security group Inbound Rule
 	* Then Conncet to the instance via EC2 Instance Connect
+* Reading data from s3 via boto 
+	* [Blog](https://www.radishlogic.com/aws/how-to-load-a-json-file-from-s3-to-a-python-dictionary-using-boto3/#google_vignette)
 
 

@@ -1,23 +1,26 @@
 import os
-import sys
 import logging
-import argparse
 import toml
 import json
-from sqlalchemy import text
+from sqlalchemy import create_engine, text
 import requests
 from dotenv import load_dotenv
-from aws_utils.aws_utils import connect_to_s3, connect_db, disconnect_db
+import boto3
+from typing import Tuple, Optional
+
 
 load_dotenv()
 # Load environment variables
-
+AWS_ACCESS_KEY = os.getenv('ACCESS_KEY')
+AWS_SECRET_KEY = os.getenv('SECRET_KEY')
 # Database credentials
 HOST_MYSQL = os.getenv('HOST_MYSQL')
 USER = os.getenv('USER_MYSQL')
 PASSWORD = os.getenv('PASSWORD')
 DB_NAME = os.getenv('DB_NAME')
+PORT = os.getenv('PORT')
 URL = os.getenv('URL')
+
 
 
 # Configure Logging
@@ -26,6 +29,58 @@ logging.basicConfig(
                     format="%(asctime)s %(levelname)s : %(message)s",
                     datefmt="%Y-%m-%d %H:%M:%S",
                    )
+
+def connect_to_s3() -> Tuple[Optional[boto3.resources.base.ServiceResource], Optional[boto3.client]]:
+    """
+    Establish a connection to AWS S3 using credentials from environment variables.
+
+    Returns:
+        tuple: s3 resource and s3 client objects.
+    """
+    logging.info("Initializing S3 connection...")
+    try:
+        session = boto3.Session(
+            aws_access_key_id=AWS_ACCESS_KEY,
+            aws_secret_access_key=AWS_SECRET_KEY
+        )
+        s3 = session.resource('s3')
+        s3_client = session.client('s3')
+        logging.info("Connected to S3 successfully.")
+        return s3, s3_client
+    except Exception as e:
+        logging.error(f"Failed to connect to S3: {e}")
+        return None, None
+
+def connect_db():
+    """
+    Establishes a connection to the specified database and returns the connection engine.
+    
+    Args:
+    db_name (str): Name of the database hosted on AWS RDS.
+
+    Returns:
+    sqlalchemy.engine.base.Engine: Database connection engine.
+    """
+    connection_string = f"mysql+mysqlconnector://{USER}:{PASSWORD}@{HOST_MYSQL}:{PORT}/{DB_NAME}"
+    try:
+        engine = create_engine(connection_string, echo=True)
+        logging.info(f"Connected to the Database")
+    except Exception as e:
+        print(f"Something went wrong: {e}")
+        print("Could not connect to the database")
+        return None
+    return engine
+
+def disconnect_db(engine):
+    """
+    Closes the database connection.
+
+    Args:
+    engine (sqlalchemy.engine.base.Engine): Active database connection engine.
+    """
+    engine.dispose()
+    logging.info("Database connection closed")
+    return None
 
 
 def extract_ids(bucket_name, file_path_s3):
@@ -96,7 +151,7 @@ def lambda_handler(event, context):
 	# Download json from s3 & extract the customer ids from the file
     ids_str = extract_ids(bucket, key)
     
-    engine = connect_db(DB_NAME, USER, PASSWORD, HOST_MYSQL)
+    engine = connect_db()
     if engine is not None:
         result = extract_names_db(engine, ids_str)
         disconnect_db(engine)

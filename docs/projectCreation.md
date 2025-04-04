@@ -111,6 +111,7 @@ eval "$(~/miniconda/bin/conda shell.bash hook)" && conda init
 source ~/.bashrc
 # now you should see (base) appear
 
+
 # Create virtual env in the project folder
 cd DataEngineering_SuperStore_Data_ETL_Pipeline 
 conda create --prefix ./.venv python=3.12 pip -y
@@ -119,6 +120,21 @@ conda activate ./venv
 # check python version
 which python
 python --version
+```
+* zip
+```bash
+# install zip
+sudo apt install -y zip unzip
+```
+* aws
+Install the aws via python in the virtual env
+```bash
+cd /home/ubuntu/DataEngineering_SuperStore_Data_ETL_Pipeline
+conda activate .venv
+# check if already installed
+aws --version
+# if command not found install aws along with other dependencies with versions that are compatable using the following command
+pip install --upgrade awscli boto3 botocore s3transfer urllib3 six
 ```
 ---
 
@@ -239,6 +255,29 @@ python --version
 * Write the notification configuration in the file `notification.json`
 * Add the notification to the bucket which should trigger the lambda function 
 
+### Create a Custom Policy As Follows:
+* To attach a "create role" policy to a user group in AWS IAM, you need to create a policy that grants the group permissions to create roles, and then attach that policy to the group
+* Navigate to IAM: Go to the AWS Management Console and navigate to the IAM service.
+* Create Policy: Click on "Policies" in the navigation pane and then click "Create policy".
+* Choose JSON: Select the JSON tab and paste the following policy document: 
+* Code:
+```json
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "iam:CreateRole"
+                ],
+                "Resource": "*"
+            }
+        ]
+    }
+```
+* Now attach this policy to the user group developers
+
+
 
 ## Useful Links
 * Connect to EC2 Instance via `EC2 Instance Connect` 
@@ -248,4 +287,19 @@ python --version
 * Reading data from s3 via boto 
 	* [Blog](https://www.radishlogic.com/aws/how-to-load-a-json-file-from-s3-to-a-python-dictionary-using-boto3/#google_vignette)
 
+## ERRORS:
+* The awscli, boto3, botocore, s3transfer, urllib3, six all had conflicting versions so had to uninstall them all and reinstall versions compatable with each other.
+* Lambda functions size error:
+	* The.zip file was too large and has to be smaller than 70167211; mine was bigger
+	* Solution: 
+		1. ~~going to put the custom functions in aws_utils into the same lambda_function.py file ~~
+		2. Deleted unnecessary packages like pandas
+		3. Only add packages that are not available on Lambda. Adding all the packages in the virtual folder makes the size of the .zip file very large
+* Within lambda s3 boto connection should be outside any function. It should be done right after the import statements and we don't need to give credentials as the lamda function already has the permission set for accessing s3 buckets
+* DB was not turned on
 
+
+## TODO: 
+* Redo the steps for function creation in the right region
+* Notes on how when configuring aws cli we have to give permissions to the User to 1) create roles and 2) attach policies to these roles.
+* These permissions will have to be given by creating custom policies

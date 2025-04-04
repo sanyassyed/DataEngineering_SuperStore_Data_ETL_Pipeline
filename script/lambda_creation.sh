@@ -88,7 +88,10 @@ conda activate
 # Run the script to pull top 10 customer ID's from RDS and write the .json file to s3 bucket input folder
 bash script/run.sh
 
-# Errors
+# This should push .json file to s3 and that inturn should trigger the Lambda function
+
+# Errors - Not Required but keep in mind
+# Turn on Database
 # The sql libraries packaged don't work on lambda so going to change just those in the .zip file
 # these packages are required only for lambda and not the local system
 # first we need to remove the older version and then install the new versions

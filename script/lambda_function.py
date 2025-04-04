@@ -11,8 +11,6 @@ from urllib.parse import unquote_plus
 
 load_dotenv()
 # Load environment variables
-AWS_ACCESS_KEY = os.getenv('ACCESS_KEY')
-AWS_SECRET_KEY = os.getenv('SECRET_KEY')
 # Database credentials
 HOST_MYSQL = os.getenv('HOST_MYSQL')
 USER = os.getenv('USER_MYSQL')
@@ -27,7 +25,9 @@ URL = os.getenv('URL')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-s3_client = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
+# we have already givem Lambda IAM permission to access s3 bucket so we do not need to give access keys
+s3_client = boto3.client('s3')
+
 
 def connect_db():
     """
@@ -42,7 +42,7 @@ def connect_db():
     connection_string = f"mysql+mysqlconnector://{USER}:{PASSWORD}@{HOST_MYSQL}:{PORT}/{DB_NAME}"
     try:
         engine = create_engine(connection_string, echo=True)
-        logger.info(f"Connected to the Database: {engine}")
+        logger.info(f"Connected to the Database")
     except Exception as e:
         print(f"Something went wrong: {e}")
         print("Could not connect to the database")
@@ -76,16 +76,13 @@ def extract_ids(bucket_name, file_path_s3):
     str: A string of customer ids
 
     """
-    logger.info(f"connected to s3 {s3_client}")
-    #s3_client.download_file(Bucket=bucket_name, Key=file_path_s3)
+
     # Get the file inside the S3 Bucket
-    logger.info("getting the response from s3")
     s3_response = s3_client.get_object(Bucket=bucket_name, Key=file_path_s3)
-    logger.info(f"response received from s3 {s3_response}")
-    logger.info("getting the body from s3 response")
+
     # Get the Body object in the S3 get_object() response
     s3_object_body = s3_response.get('Body')
-    logger.info("getting the content from s3 response")
+
     # Read the data in bytes format
     content = s3_object_body.read()
 
@@ -100,33 +97,26 @@ def extract_ids(bucket_name, file_path_s3):
 def extract_names_db(engine, ids_str):
     logger.info("Querying the orders table to extract names")
     query = text(f"SELECT CustomerID, CustomerName, CURDATE() AS 'date' FROM customers WHERE CustomerID IN {ids_str} ORDER BY CustomerID ASC")
-    logger.info(f"Query is {query}")
-    # Execute the query with parameters
-    with engine.connect() as conn:
-        logger.info("tring to connect to db.......")
-        result = conn.execute(query)
-    logger.info(f"Data extracted from db")
-    result_l = []
-    for r in result:
-        result_l.append({"id":r[0], "name":r[1], "date":str(r[2])})
-    return result_l
-
+    try:
+        # Execute the query with parameters
+        with engine.connect() as conn:
+            result = conn.execute(query)
+        logger.info(f"Data extracted from db")
+        result_l = []
+        for r in result:
+            result_l.append({"id":r[0], "name":r[1], "date":str(r[2])})
+        return result_l
+    except Exception as e:
+        logger.error(f"Following error when running query on the database: {e}")
+    return None
 
 
 def post_api(result, url):
-    logger.info("Posting data to API")
-    logger.info(result)
+    logger.info(f"Posting the following data to API: {result}")
     response = requests.post(url, data = json.dumps(result))
     return response
 
-def test_connection(engine):
-    try:
-        with engine.connect() as conn:
-            logger.info("Connected successfully")
-            result = conn.execute(text("SELECT 1"))
-            logger.info(f"Test query result: {result.fetchall()}")
-    except Exception as e:
-        logger.error(f"Test DB connection failed: {e}")
+
 
 def lambda_handler(event, context):
     for record in event['Records']:
@@ -134,34 +124,19 @@ def lambda_handler(event, context):
         key = unquote_plus(record['s3']['object']['key'])
 
     logger.info(f"The key/file uploaded is: {key}")
-    logger.info(f"The bucket name is: {bucket}")
-
-
-
-    logger.info(f"Calling function to extract ids from uploaded json file")
-
-    #logger.info(f"Keys: AWS_ACCESS_KEY = {AWS_ACCESS_KEY} AWS_SECRET_KEY = {AWS_SECRET_KEY} HOST_MYSQL = {HOST_MYSQL} USER = {USER} PASSWORD = {PASSWORD} DB_NAME = {DB_NAME} PORT = {PORT} URL = {URL}")
 
     ids_str = extract_ids(bucket, key)
-    logger.info(f"Ids Extracted as follows: {ids_str}")
 
-    
     if not ids_str:
         logger.error("Failed to extract customer IDs from JSON file.")
         return
 
-    logger.info("connecting to db")
     engine = connect_db()
-
     if engine is not None:
-        logger.info("Connected to the database")
-        #test_connection(engine)
         result = extract_names_db(engine, ids_str)
-        logger.info(f"Data extracted from db: {result}")
         disconnect_db(engine)
         
         if result is not None:
-            logger.info("Posting data to API")
             response = post_api(result, URL)
             if response.status_code == 201:
                 logger.info("SUCCESS: Data posted to API")
@@ -171,4 +146,3 @@ def lambda_handler(event, context):
             logger.error("ERROR: Could not extract names from the DB")
     else:
         logger.error("ERROR: Could not establish DB connection")
-

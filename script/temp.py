@@ -17,7 +17,7 @@ AWS_SECRET_KEY = os.getenv('SECRET_KEY')
 HOST_MYSQL = os.getenv('HOST_MYSQL')
 USER = os.getenv('USER_MYSQL')
 PASSWORD = os.getenv('PASSWORD')
-DB_NAME = os.getenv('DB_NAME')
+DB_NAME = os.getenv('DATABASE')
 PORT = os.getenv('PORT')
 URL = os.getenv('URL')
 
@@ -27,26 +27,21 @@ URL = os.getenv('URL')
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-def connect_to_s3() -> Tuple[Optional[boto3.resources.base.ServiceResource], Optional[boto3.client]]:
+def connect_to_s3() -> Optional[boto3.client]:
     """
     Establish a connection to AWS S3 using credentials from environment variables.
 
     Returns:
         tuple: s3 resource and s3 client objects.
     """
-    logger.info("Initializing S3 connection...")
+    logger.info("Initializing S3 connection")
     try:
-        session = boto3.Session(
-            aws_access_key_id=AWS_ACCESS_KEY,
-            aws_secret_access_key=AWS_SECRET_KEY
-        )
-        s3 = session.resource('s3')
-        s3_client = session.client('s3')
+        s3_client = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
         logger.info("Connected to S3 successfully.")
-        return s3, s3_client
+        return s3_client
     except Exception as e:
         logger.error(f"Failed to connect to S3: {e}")
-        return None, None
+        return None
 
 def connect_db():
     """
@@ -95,13 +90,16 @@ def extract_ids(bucket_name, file_path_s3):
     str: A string of customer ids
 
     """
-    s3, s3_client = connect_to_s3()
+    s3_client = connect_to_s3()
+    logger.info("s3 connection returned")
     # Get the file inside the S3 Bucket
+    logger.info("getting the response from s3")
     s3_response = s3_client.get_object(Bucket=bucket_name, Key=file_path_s3)
-
+    logger.info(f"response received from s3 {s3_response}")
+    logger.info("getting the body from s3 response")
     # Get the Body object in the S3 get_object() response
     s3_object_body = s3_response.get('Body')
-
+    logger.info("getting the content from s3 response")
     # Read the data in bytes format
     content = s3_object_body.read()
 
@@ -144,19 +142,31 @@ def lambda_handler(event, context):
         key = unquote_plus(record['s3']['object']['key'])
 
     logger.info(f"The key/file uploaded is: {key}")
+    logger.info(f"The bucket name is: {bucket}")
+
+    logger.info(f"Calling function to extract ids from uploaded json file")
+
+    #logger.info(f"Keys: AWS_ACCESS_KEY = {AWS_ACCESS_KEY} AWS_SECRET_KEY = {AWS_SECRET_KEY} HOST_MYSQL = {HOST_MYSQL} USER = {USER} PASSWORD = {PASSWORD} DB_NAME = {DB_NAME} PORT = {PORT} URL = {URL}")
 
     ids_str = extract_ids(bucket, key)
+    logger.info(f"Ids Extracted as follows: {ids_str}")
 
+    
     if not ids_str:
         logger.error("Failed to extract customer IDs from JSON file.")
         return
 
+    logger.info("connecting to db")
     engine = connect_db()
+
     if engine is not None:
+        logger.info("Connected to the database")
         result = extract_names_db(engine, ids_str)
+        logger.info(f"Data extracted from db: {result}")
         disconnect_db(engine)
         
         if result is not None:
+            logger.info("Posting data to API")
             response = post_api(result, URL)
             if response.status_code == 201:
                 logger.info("SUCCESS: Data posted to API")
@@ -166,4 +176,3 @@ def lambda_handler(event, context):
             logger.error("ERROR: Could not extract names from the DB")
     else:
         logger.error("ERROR: Could not establish DB connection")
-

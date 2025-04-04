@@ -1,8 +1,8 @@
 {
     "LambdaFunctionConfigurations": [
         {
-            "Id": "s3_image_upload_raw",
-            "LambdaFunctionArn": "arn:aws:lambda:us-east-2:209479284263:function:cli_image_resize",
+            "Id": "s3_file_upload",
+            "LambdaFunctionArn": "arn:aws:lambda:us-east-2:209479284263:function:superstore",
             "Events": [
                 "s3:ObjectCreated:Put"
             ],
@@ -11,7 +11,7 @@
                     "FilterRules": [
                         {
                             "Name": "Prefix",
-                            "Value": "raw/"
+                            "Value": "input/"
                         },
                         {
                             "Name": "Suffix",

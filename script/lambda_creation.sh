@@ -50,8 +50,10 @@ aws iam attach-role-policy --role-name superstore_lambda_role --policy-arn arn:a
 # Create the lambda function
 cd script
 aws lambda create-function --function-name superstore --zip-file fileb://superstore.zip --handler lambda_function.lambda_handler --runtime python3.12 --role arn:aws:iam::209479284263:role/superstore_lambda_role
-# Got size error; look at project creation for details
+# Got size error so removed unnecessary packages; look at project creation for details
 
+# created function in the wrong region
+# aws lambda delete-function --function-name superstore
 
 # bucket name : wcd-week3-lambda-miniproject
 # folder with data: `input`
@@ -68,3 +70,20 @@ aws lambda add-permission \
 cd /home/ubuntu/DataEngineering_SuperStore_Data_ETL_Pipeline/script
 nano notification.json
 
+# add the event notification s3_file_upload to the s3 object
+aws s3api put-bucket-notification-configuration --bucket wcd-week3-lambda-miniproject --notification-configuration file://notification.json
+
+# test the function on the aws console
+# if errors in code; fix the errors locally
+# add updated lambd_function.py to .zip file
+zip -g superstore.zip lambda_function.py
+# update the function on aws
+aws lambda update-function-code --function-name superstore --zip-file fileb://superstore.zip
+
+# TEST
+# Turn on the DB in RDS
+# upload the file from local system to s3
+cd /home/ubuntu/DataEngineering_SuperStore_Data_ETL_Pipeline
+conda activate
+# Run the script to pull top 10 customer ID's from RDS and write the .json file to s3 bucket input folder
+bash script/run.sh

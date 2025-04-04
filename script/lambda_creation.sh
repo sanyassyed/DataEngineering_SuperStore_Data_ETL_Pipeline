@@ -26,7 +26,7 @@ cd ${thisfolder}
 
 # aws is installed in the virtual folder of the project to go there
 cd /home/ubuntu/DataEngineering_SuperStore_Data_ETL_Pipeline/
-conda activate .venv
+conda activate .venv/
 # configure aws
 aws configure
 # use the access key & secret key in .env file
@@ -87,3 +87,17 @@ cd /home/ubuntu/DataEngineering_SuperStore_Data_ETL_Pipeline
 conda activate
 # Run the script to pull top 10 customer ID's from RDS and write the .json file to s3 bucket input folder
 bash script/run.sh
+
+# Errors
+# The sql libraries packaged don't work on lambda so going to change just those in the .zip file
+# these packages are required only for lambda and not the local system
+# first we need to remove the older version and then install the new versions
+# Remove SQLAlchemy-2.0.37.dist-info and mysql_connector-2.2.9.dist-info and replace with mysql-connector-python==8.0.33 and sqlalchemy==2.0.37?
+unzip superstore.zip -d clean_build
+rm -rf clean_build/mysql_connector-2.2.9.dist-info clean_build/SQLAlchemy-2.0.37.dist-info
+pip install mysql-connector-python==8.0.33 -t clean_build
+pip install SQLAlchemy==2.0.37 -t clean_build
+cd clean_build
+zip -r ../superstore.zip .
+cd ..
+unzip -l superstore.zip

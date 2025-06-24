@@ -301,5 +301,5 @@ python --version
 
 ## TODO: 
 * Redo the steps for function creation in the right region
-* Notes on how when configuring aws cli we have to give permissions to the User to 1) create roles and 2) attach policies to these roles.
+* Notes on when configuring aws cli we have to give permissions to the User to 1) create roles and 2) attach policies to these roles.
 * These permissions will have to be given by creating custom policies

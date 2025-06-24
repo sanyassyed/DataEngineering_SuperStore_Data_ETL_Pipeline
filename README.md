@@ -22,6 +22,9 @@ Create a data pipeline that:
 ## 🧱 Architecture
 
 ![Project Architecture Diagram](./docs/project_architecture_1.png)
+
+## 🛠️ Data Pipeline
+
 ![Project Flow Detail](./docs/project_architecture_2.jpeg)
 
 ---
